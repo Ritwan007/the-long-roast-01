@@ -19,10 +19,18 @@ ENTRY = "My agent read 312 lines of rules, spawned three subagents, and wrote a 
 OUTPUT_PATH = Path(os.environ.get("ENTRY_OUTPUT", "/output/entry.txt"))
 
 
+def write_entry(path: Path) -> str:
+    """Write ENTRY to path and return the line written."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(ENTRY, encoding="utf-8")
+    return path.read_text(encoding="utf-8")
+
+
 def main() -> None:
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(ENTRY, encoding="utf-8")
-    written = OUTPUT_PATH.read_text(encoding="utf-8")
+    written = write_entry(OUTPUT_PATH)
+    assert written == ENTRY, "entry.txt does not match the intended text"
+    assert 1 <= len(written) <= 200, "entry.txt fails the gate: not 1-200 chars"
+    assert "\n" not in written and written.strip(), "entry.txt fails the gate: not a single non-blank line"
     if written != ENTRY:
         raise SystemExit("entry.txt does not match the intended text")
     if not 1 <= len(written) <= 200 or "\n" in written:
